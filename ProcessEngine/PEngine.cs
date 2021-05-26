@@ -33,7 +33,7 @@ namespace ProcessEngine
         private PEngine(Process process)
         {
 
-            _processHandle = OpenProcess(ProcessAccessFlags.All, false, Process.Id);
+            _processHandle = OpenProcess(ProcessAccessFlags.All, false, process.Id);
             if (_processHandle == null)
                 throw new Kernel32Exception("Impossible to open process.", Marshal.GetLastWin32Error());
 
@@ -55,7 +55,6 @@ namespace ProcessEngine
             Memory = new MemoryEngine(_processHandle);
             Threads = new ThreadsEngine(_processHandle);
             Assembly = new AssemblyEngine(_processHandle, Memory, Threads);
-
             Windows = await getWindowsTask;
 
             return this;

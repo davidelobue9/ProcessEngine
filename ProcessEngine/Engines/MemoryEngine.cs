@@ -97,15 +97,18 @@ namespace ProcessEngine.Engines
 
         }
 
-        public IntPtr GetPointer(IntPtr baseAddress, List<int> offsets)
+        public IntPtr GetPointer(IntPtr baseAddress, int[] offsets)
         {
 
             IntPtr address = Read<IntPtr>(baseAddress);
 
-            var lastOffset = offsets.Last();
-            offsets.RemoveAt(offsets.Count - 1);
+            var offsetsCollection = offsets.ToList();
 
-            foreach (var offset in offsets)
+            var lastOffset = offsetsCollection.Last();
+
+            offsetsCollection.RemoveAt(offsetsCollection.Count - 1);
+
+            foreach (var offset in offsetsCollection)
                 address = Read<IntPtr>(IntPtr.Add(address, offset));
 
             return IntPtr.Add(address, lastOffset);
@@ -135,7 +138,7 @@ namespace ProcessEngine.Engines
 
         }
 
-        public T Read<T>(IntPtr pointer, List<int> offsets) where T : struct
+        public T Read<T>(IntPtr pointer, int[] offsets) where T : struct
         {
 
             return Read<T>(
@@ -144,7 +147,7 @@ namespace ProcessEngine.Engines
         
         }
 
-        public unsafe T[] Read<T>(IntPtr pointer, int arrayLength) where T : struct
+        public unsafe T[] ReadArray<T>(IntPtr pointer, int arrayLength) where T : struct
         {
 
             T[] read = new T[arrayLength];
@@ -176,10 +179,10 @@ namespace ProcessEngine.Engines
 
         }
 
-        public T[] Read<T>(IntPtr pointer, List<int> offsets, int arrayLength) where T : struct
+        public T[] ReadArray<T>(IntPtr pointer, int[] offsets, int arrayLength) where T : struct
         {
 
-            return Read<T>(
+            return ReadArray<T>(
                 GetPointer(pointer, offsets),
                 arrayLength
                 );
@@ -283,7 +286,7 @@ namespace ProcessEngine.Engines
 
         }
 
-        public void Write<T>(IntPtr pointer, List<int> offsets, T value) where T : struct
+        public void Write<T>(IntPtr pointer, int[] offsets, T value) where T : struct
         {
 
             Write<T>(
@@ -293,7 +296,7 @@ namespace ProcessEngine.Engines
 
         }
 
-        public void Write<T>(IntPtr pointer, List<int> offsets, T[] array) where T : struct
+        public void Write<T>(IntPtr pointer, int[] offsets, T[] array) where T : struct
         {
 
             Write<T>(
@@ -312,7 +315,7 @@ namespace ProcessEngine.Engines
 
         }
 
-        public Task<IntPtr> GetPointerAsync(IntPtr baseAddress, List<int> offsets)
+        public Task<IntPtr> GetPointerAsync(IntPtr baseAddress, int[] offsets)
         {
 
             return Task.Run(() => {
@@ -330,7 +333,7 @@ namespace ProcessEngine.Engines
 
         }
         
-        public Task<T> ReadAsync<T>(IntPtr pointer, List<int> offsets) where T : struct
+        public Task<T> ReadAsync<T>(IntPtr pointer, int[] offsets) where T : struct
         {
 
             return Task.Run(() => {
@@ -339,19 +342,19 @@ namespace ProcessEngine.Engines
 
         }
 
-        public unsafe Task<T[]> ReadAsync<T>(IntPtr pointer, int arrayLength) where T : struct
+        public unsafe Task<T[]> ReadArrayAsync<T>(IntPtr pointer, int arrayLength) where T : struct
         {
 
             return Task.Run(() => {
-                return Read<T>(pointer, arrayLength);
+                return ReadArray<T>(pointer, arrayLength);
             });
 
         }
 
-        public Task<T[]> ReadAsync<T>(IntPtr pointer, List<int> offsets, int arrayLength) where T : struct
+        public Task<T[]> ReadArrayAsync<T>(IntPtr pointer, int[] offsets, int arrayLength) where T : struct
         {
             return Task.Run(() => {
-                return Read<T>(pointer, offsets, arrayLength);
+                return ReadArray<T>(pointer, offsets, arrayLength);
             });
         }
 
@@ -390,14 +393,14 @@ namespace ProcessEngine.Engines
             });
         }
 
-        public Task WriteAsync<T>(IntPtr pointer, List<int> offsets, T value) where T : struct
+        public Task WriteAsync<T>(IntPtr pointer, int[] offsets, T value) where T : struct
         {
             return Task.Run(() => {
                 Write(pointer, offsets, value);
             });
         }
 
-        public Task WriteAsync<T>(IntPtr pointer, List<int> offsets, T[] array) where T : struct
+        public Task WriteAsync<T>(IntPtr pointer, int[] offsets, T[] array) where T : struct
         {
             return Task.Run(() => {
                 Write(pointer, offsets, array);
