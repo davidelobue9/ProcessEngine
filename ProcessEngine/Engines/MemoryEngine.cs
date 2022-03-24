@@ -92,7 +92,7 @@ namespace ProcessEngine.Engines
                 pointer,
                 buffer,
                 memoryAreaSize,
-                out IntPtr _
+                out var _
                 ))
             {
                 throw new Kernel32Exception("Impossible to read memory.", Marshal.GetLastWin32Error());
