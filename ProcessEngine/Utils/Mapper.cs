@@ -27,8 +27,7 @@ namespace ProcessEngine.Utils
             FieldInfo[] srcFieldsInfos = typeof(TSource).GetFields();
             PropertyInfo[] propertiesInfos = typeof(TDestination).GetProperties();
 
-            (FieldInfo, PropertyInfo)[] fieldsAndCorrespondingProperties =
-                MapperHelper.Intersect(srcFieldsInfos, propertiesInfos);
+            (FieldInfo, PropertyInfo)[] fieldsAndCorrespondingProperties = MapperHelper.Intersect(srcFieldsInfos, propertiesInfos);
 
             Parallel.ForEach(fieldsAndCorrespondingProperties, fieldAndCorrespondingProperty =>
             {
@@ -38,8 +37,7 @@ namespace ProcessEngine.Utils
                 Map(srcFieldInfo, dstPropertyInfo, ref sourceStruct, ref destinationObj);
             });
 
-            FieldInfo[] fieldsWithoutCorrespondingProperties =
-                MapperHelper.SymmetricDifference(srcFieldsInfos, propertiesInfos);
+            FieldInfo[] fieldsWithoutCorrespondingProperties = MapperHelper.SymmetricDifference(srcFieldsInfos, propertiesInfos);
 
             Parallel.ForEach(fieldsWithoutCorrespondingProperties, fieldWithoutCorrespondingProperty =>
             {
@@ -81,18 +79,19 @@ namespace ProcessEngine.Utils
 
             ConcurrentBag<TDestination> destinations = new();
             Parallel.ForEach(sourcesPtrs, sourcePtr =>
-                {
-                    object destionation = typeof(Mapper)
-                        .GetMethod("ReadAndMap", new[] { typeof(IntPtr) })
-                        .MakeGenericMethod(new Type[] { srcItemsType, typeof(TDestination) })
-                        .Invoke(this, new object[] { sourcePtr });
-                    destinations.Add((TDestination)destionation);
-                });
+            {
+                object destionation = typeof(Mapper)
+                    .GetMethod("ReadAndMap", new[] { typeof(IntPtr) })
+                    .MakeGenericMethod(new Type[] { srcItemsType, typeof(TDestination) })
+                    .Invoke(this, new object[] { sourcePtr });
+                destinations.Add((TDestination)destionation);
+            });
+
             return destinations.ToArray();
         }
 
         public TDestination ReadAndMap<TSource, TDestination>(IntPtr pointer)
-                            where TSource : struct
+            where TSource : struct
             where TDestination : StructWrapperDTO, new()
         {
             if (pointer.Equals(IntPtr.Zero))

@@ -51,8 +51,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\RegisterCallingConventionParameters.cs" />
     <Compile Include="DTOs\StructWrapperDTO.cs" />
     <Compile Include="Engines\AssemblyEngine.cs" />
+    <Compile Include="Engines\DetouringEngine.cs" />
     <Compile Include="Engines\MemoryEngine.cs" />
     <Compile Include="Engines\ThreadsEngine.cs" />
     <Compile Include="Engines\WindowEngine.cs" />
@@ -60,6 +62,7 @@
     <Compile Include="IPEngine.cs" />
     <Compile Include="PEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Structs\CPURegister.cs" />
     <Compile Include="Utils\Mapper.cs" />
   </ItemGroup>
   <ItemGroup />

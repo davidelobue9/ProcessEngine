@@ -12,12 +12,6 @@ namespace ProcessEngine
     {
         private readonly IntPtr _processHandle;
 
-        public Process Process { get; }
-        public AssemblyEngine Assembly { get; private set; }
-        public MemoryEngine Memory { get; private set; }
-        public ThreadsEngine Threads { get; private set; }
-        public WindowEngine[] Windows { get; private set; }
-
         private PEngine(Process process)
         {
             Process = process ?? throw new ArgumentNullException(nameof(process));
@@ -30,12 +24,22 @@ namespace ProcessEngine
 
         ~PEngine()
         {
+            Memory.ReleaseAll();
+            Detouring.DetachAll();
+
             if (!CloseHandle(_processHandle))
             {
                 throw new Kernel32Exception("Impossible to close process handle.", Marshal.GetLastWin32Error());
             }
         }
 
+        public AssemblyEngine Assembly { get; private set; }
+        public DetouringEngine Detouring { get; private set; }
+        public MemoryEngine Memory { get; private set; }
+        public Process Process { get; }
+        public ThreadsEngine Threads { get; private set; }
+        public WindowEngine[] Windows { get; private set; }
+        
         public static async Task<PEngine> BuildAsync(Process process)
         {
             return await new PEngine(process).InitializeAsync();
@@ -46,7 +50,8 @@ namespace ProcessEngine
             var getWindowsTask = WindowEngine.GetWindowsAsync(Process);
             Memory = new MemoryEngine(_processHandle);
             Threads = new ThreadsEngine(_processHandle);
-            Assembly = new AssemblyEngine(_processHandle, Memory, Threads);
+            Assembly = new AssemblyEngine(Memory, Threads);
+            Detouring = new DetouringEngine(Memory, Assembly);
             Windows = await getWindowsTask;
 
             return this;

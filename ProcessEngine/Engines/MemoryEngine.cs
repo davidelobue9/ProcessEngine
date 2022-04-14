@@ -16,6 +16,8 @@ namespace ProcessEngine.Engines
     {
         private readonly Mapper _mapper;
         private readonly IntPtr _processHandle;
+        
+        private readonly List<IntPtr> _allocatedMemoryBlockPtrs = new();
 
         internal MemoryEngine(IntPtr processHandle)
         {
@@ -23,9 +25,11 @@ namespace ProcessEngine.Engines
             _mapper = new Mapper(this);
         }
 
+        public IntPtr[] AllocatedMemoryBlockPtrs { get => _allocatedMemoryBlockPtrs.ToArray(); }
+
         public IntPtr Allocate(int size)
         {
-            IntPtr returnValue = VirtualAllocEx(
+            IntPtr allocatedMemoryBlockPtr = VirtualAllocEx(
                 _processHandle,
                 IntPtr.Zero,
                 size,
@@ -33,9 +37,14 @@ namespace ProcessEngine.Engines
                 MemoryProtection.ExecuteReadWrite
             );
 
-            return returnValue.Equals(IntPtr.Zero)
-                ? throw new Kernel32Exception("Impossible to allocate memory.", Marshal.GetLastWin32Error())
-                : returnValue;
+            if (allocatedMemoryBlockPtr.Equals(IntPtr.Zero))
+            {
+                throw new Kernel32Exception("Impossible to allocate memory.", Marshal.GetLastWin32Error());
+            }
+
+            _allocatedMemoryBlockPtrs.Add(allocatedMemoryBlockPtr);
+
+            return allocatedMemoryBlockPtr;
         }
 
         public IntPtr GetPointer(IntPtr basePointer, int[] offsets)
@@ -370,6 +379,14 @@ namespace ProcessEngine.Engines
             if (!VirtualFreeEx(_processHandle, pointer, 0, AllocationType.Release))
             {
                 throw new Kernel32Exception("Impossible to release the memory.", Marshal.GetLastWin32Error());
+            }
+        }
+
+        public void ReleaseAll()
+        {
+            foreach (IntPtr allocatedMemoryBlockPtrPtr in AllocatedMemoryBlockPtrs)
+            {
+                Release(allocatedMemoryBlockPtrPtr);
             }
         }
 
