@@ -380,6 +380,7 @@ namespace ProcessEngine.Engines
             {
                 throw new Kernel32Exception("Impossible to release the memory.", Marshal.GetLastWin32Error());
             }
+            _allocatedMemoryBlockPtrs.Remove(pointer);
         }
 
         public void ReleaseAll()

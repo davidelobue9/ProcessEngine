@@ -46,11 +46,19 @@ namespace ProcessEngine.Engines
             TargetReplaceableBytesByTargetPtr.Add(targetPtr, targetReplaceableBytes);
         }
 
+        public void Detach(IntPtr targetPtr)
+        {
+            _memoryEngine.WriteArray<byte>(targetPtr, TargetReplaceableBytesByTargetPtr[targetPtr]);
+            TargetReplaceableBytesByTargetPtr.Remove(targetPtr);
+        }
+
         public void DetachAll()
         {
-            foreach (var (targetPtr, targetOriginalBytes) in TargetReplaceableBytesByTargetPtr.Select(x => (x.Key, x.Value)))
+            IntPtr[] targetPtrs = TargetReplaceableBytesByTargetPtr.Keys.ToArray();
+
+            foreach (IntPtr targetPtr in targetPtrs)
             {
-                _memoryEngine.WriteArray<byte>(targetPtr, targetOriginalBytes);
+                Detach(targetPtr);
             }
         }
 
