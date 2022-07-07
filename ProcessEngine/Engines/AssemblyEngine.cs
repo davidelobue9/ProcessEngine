@@ -1,4 +1,5 @@
-﻿using ProcessEngine.Models;
+﻿#nullable enable
+using ProcessEngine.DTOs;
 using System;
 using System.Collections.Generic;
 
@@ -40,31 +41,30 @@ namespace ProcessEngine.Engines
             InjectAndExecute(operationCodes);
         }
 
-        public byte[] GenerateCallFunctionOperationCodes(IntPtr functionPointer, RegisterCallingConventionParameters callingParams = null)
+        public byte[] GenerateCallFunctionOperationCodes(
+            IntPtr functionPointer,
+            RegisterCallingConventionParameters? callingParams = null)
         {
             List<byte> operationCodes = new();
 
-            operationCodes.Add(0x60); // pusha
-            operationCodes.Add(0x9c); // pushd
-
             if (callingParams is not null)
             {
-                if (callingParams.EAX != null)
+                if (callingParams.EAX is not null)
                 {
                     operationCodes.Add(0xB8); // mov eax, ...
                     operationCodes.AddRange(callingParams.EAX.Value.GetBytes());
                 }
-                if (callingParams.ECX != null)
+                if (callingParams.ECX is not null)
                 {
                     operationCodes.Add(0xB9); // mov ecx, ...
                     operationCodes.AddRange(callingParams.ECX.Value.GetBytes());
                 }
-                if (callingParams.EDX != null)
+                if (callingParams.EDX is not null)
                 {
                     operationCodes.Add(0xBA); // mov edx, ...
                     operationCodes.AddRange(callingParams.EDX.Value.GetBytes());
                 }
-                if (callingParams.LTRStack != null)
+                if (callingParams.LTRStack is not null)
                 {
                     foreach (var arg in callingParams.LTRStack)
                     {
@@ -78,8 +78,6 @@ namespace ProcessEngine.Engines
             {
                 0xBF, functionPointerBytes[0], functionPointerBytes[1], functionPointerBytes[2], functionPointerBytes[3], // mov edi, function
                 0xFF, 0xD7,                                                                                               // call edi
-                0x9D,                                                                                                     // popf
-                0x61,                                                                                                     // popa
                 0xC3                                                                                                      // ret
             });
 

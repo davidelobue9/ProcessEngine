@@ -1,4 +1,5 @@
-﻿using ProcessEngine.Models;
+﻿#nullable enable
+using ProcessEngine.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,11 @@ namespace ProcessEngine.Engines
 
         public Dictionary<IntPtr, byte[]> TargetReplaceableBytesByTargetPtr { get; private set; } = new();
 
-        public void Attach(IntPtr targetPtr, int targetReplaceableBytesCount, IntPtr detourFunctionPtr, RegisterCallingConventionParameters detourFunctionCallingParams = null)
+        public void Attach(
+            IntPtr targetPtr,
+            int targetReplaceableBytesCount,
+            IntPtr detourFunctionPtr,
+            RegisterCallingConventionParameters? detourFunctionCallingParams = null)
         {
             if (targetPtr.Equals(IntPtr.Zero))
             {
@@ -34,15 +39,16 @@ namespace ProcessEngine.Engines
             }
 
             byte[] targetReplaceableBytes = _memoryEngine.ReadArray<byte>(targetPtr, targetReplaceableBytesCount);
-            byte[] stubFunctionOperationCodes = GenerateStubFunctionOperationCodes( targetPtr, targetReplaceableBytes, detourFunctionPtr, detourFunctionCallingParams);
+            byte[] stubFunctionOperationCodes = GenerateStubFunctionOperationCodes(targetPtr, targetReplaceableBytes, detourFunctionPtr, detourFunctionCallingParams);
             IntPtr stubFunctionPtr = _assemblyEngine.Inject(stubFunctionOperationCodes);
 
-            List<byte> targetNewBytes = new(
-                new byte[] { 0x68 }.Concat(BitConverter.GetBytes(stubFunctionPtr.ToInt32())) // push stubFunctionPtr
-                .Concat(new byte[] { 0xc3 })                                                 // ret
-                .Concat(Enumerable.Repeat<byte>(0x90, targetReplaceableBytesCount - 6)));    // ...nop
+            byte[] targetNewBytes = new byte[]
+            { 0x68 }.Concat(BitConverter.GetBytes(stubFunctionPtr.ToInt32()))       // push stubFunctionPtr
+            .Concat(new byte[] { 0xc3 })                                            // ret
+            .Concat(Enumerable.Repeat<byte>(0x90, targetReplaceableBytesCount - 6)) // ...nop
+            .ToArray();
 
-            _memoryEngine.WriteArray<byte>(targetPtr, targetNewBytes.ToArray());
+            _memoryEngine.WriteArray<byte>(targetPtr, targetNewBytes);
             TargetReplaceableBytesByTargetPtr.Add(targetPtr, targetReplaceableBytes);
         }
 
@@ -62,7 +68,11 @@ namespace ProcessEngine.Engines
             }
         }
 
-        private byte[] GenerateStubFunctionOperationCodes(IntPtr targetPtr, byte[] targetReplaceableBytes, IntPtr detourFunctionPtr, RegisterCallingConventionParameters detourFunctionCallingParams = null)
+        private byte[] GenerateStubFunctionOperationCodes(
+            IntPtr targetPtr,
+            byte[] targetReplaceableBytes,
+            IntPtr detourFunctionPtr,
+            RegisterCallingConventionParameters? detourFunctionCallingParams = null)
         {
             if (targetReplaceableBytes is null)
             {
@@ -80,23 +90,27 @@ namespace ProcessEngine.Engines
             byte[] detourFunctionCallerOpCodes = _assemblyEngine.GenerateCallFunctionOperationCodes(detourFunctionPtr, detourFunctionCallingParams);
             IntPtr detourFunctionCallerPtr = _assemblyEngine.Inject(detourFunctionCallerOpCodes);
 
-            List<byte> operationCodes = new(new byte[]
-                {
-                    0x60,                                                                                     // pusha
-                    0x9c,                                                                                     // pushd
-                }
-                .Concat(new byte[] { 0xBF }.Concat(BitConverter.GetBytes(detourFunctionCallerPtr.ToInt32()))) // mov edi, detourFunctionCallerPtrBytes
-                .Concat(new byte[]
-                {
-                    0xFF, 0xD7,                                                                               // call edi
-                    0x9D,                                                                                     // popf
-                    0x61,                                                                                     // popa
-                })
-                .Concat(targetReplaceableBytes)                                                               // ...targetReplaceableBytes
-                .Concat(new byte[] { 0x68 }.Concat(BitConverter.GetBytes(targetPtr.ToInt32() + 6)))           // push targetPtr
-                .Concat(new byte[] { 0xc3 }));                                                                // ret                                  
+            byte[] operationCodes = new byte[]
+            {
+                0x60,                                                                                     // pusha
+                0x9c,                                                                                     // pushd
+            }
+            .Concat(new byte[] { 0xBF }.Concat(BitConverter.GetBytes(detourFunctionCallerPtr.ToInt32()))) // mov edi, detourFunctionCallerPtrBytes
+            .Concat(new byte[]
+            {
+                0xFF, 0xD7,                                                                               // call edi
+                0x9D,                                                                                     // popf
+                0x61,                                                                                     // popa
+            })
+            .Concat(targetReplaceableBytes)                                                               // ...targetReplaceableBytes
+            .Concat(new byte[] { 0x68 }.Concat(BitConverter.GetBytes(targetPtr.ToInt32() + 6)))           // push targetPtr
+            .Concat(new byte[] 
+            {
+                0xc3                                                                                      // ret  
+            })                                                                                                                            
+            .ToArray();
 
-            return operationCodes.ToArray();
+            return operationCodes;
         }
     }
 }

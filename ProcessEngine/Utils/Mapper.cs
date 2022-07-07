@@ -80,11 +80,14 @@ namespace ProcessEngine.Utils
             ConcurrentBag<TDestination> destinations = new();
             Parallel.ForEach(sourcesPtrs, sourcePtr =>
             {
-                object destionation = typeof(Mapper)
-                    .GetMethod("ReadAndMap", new[] { typeof(IntPtr) })
-                    .MakeGenericMethod(new Type[] { srcItemsType, typeof(TDestination) })
-                    .Invoke(this, new object[] { sourcePtr });
-                destinations.Add((TDestination)destionation);
+                if (!sourcePtr.Equals(IntPtr.Zero))
+                {
+                    object destionation = typeof(Mapper)
+                        .GetMethod("ReadAndMap", new[] { typeof(IntPtr) })
+                        .MakeGenericMethod(new Type[] { srcItemsType, typeof(TDestination) })
+                        .Invoke(this, new object[] { sourcePtr });
+                    destinations.Add((TDestination)destionation);
+                }
             });
 
             return destinations.ToArray();

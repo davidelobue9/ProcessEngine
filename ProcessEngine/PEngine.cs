@@ -39,7 +39,7 @@ namespace ProcessEngine
         public Process Process { get; }
         public ThreadsEngine Threads { get; private set; }
         public WindowEngine[] Windows { get; private set; }
-        
+
         public static async Task<PEngine> BuildAsync(Process process)
         {
             return await new PEngine(process).InitializeAsync();

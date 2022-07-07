@@ -1,11 +1,6 @@
 ﻿using ProcessEngine.Structs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ProcessEngine.Models
+namespace ProcessEngine.DTOs
 {
     public class RegisterCallingConventionParameters
     {

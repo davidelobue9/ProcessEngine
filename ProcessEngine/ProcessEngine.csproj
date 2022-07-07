@@ -37,9 +37,6 @@
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="PlatformInvoke">
-      <HintPath>..\..\PlatformInvoke\PlatformInvoke\bin\Release\PlatformInvoke.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Windows.Forms" />
@@ -51,20 +48,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Models\RegisterCallingConventionParameters.cs" />
-    <Compile Include="DTOs\StructWrapperDTO.cs" />
+    <Compile Include="DTOs\RegisterCallingConventionParameters.cs" />
+    <Compile Include="IPEngine.cs" />
+    <Compile Include="Models\StructWrapperDTO.cs" />
     <Compile Include="Engines\AssemblyEngine.cs" />
     <Compile Include="Engines\DetouringEngine.cs" />
     <Compile Include="Engines\MemoryEngine.cs" />
     <Compile Include="Engines\ThreadsEngine.cs" />
     <Compile Include="Engines\WindowEngine.cs" />
     <Compile Include="Helpers\MapperHelper.cs" />
-    <Compile Include="IPEngine.cs" />
     <Compile Include="PEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Structs\CPURegister.cs" />
     <Compile Include="Utils\Mapper.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\PlatformInvoke\PlatformInvoke\PlatformInvoke.csproj">
+      <Project>{b26de4c1-c44b-445d-824b-17c309275cd8}</Project>
+      <Name>PlatformInvoke</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
