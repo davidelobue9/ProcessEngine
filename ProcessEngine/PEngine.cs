@@ -8,7 +8,7 @@ using static PlatformInvoke.Kernel32;
 
 namespace ProcessEngine
 {
-    public class PEngine : IPEngine
+    public class PEngine : IPEngine, IDisposable
     {
         private readonly IntPtr _processHandle;
 
@@ -22,17 +22,6 @@ namespace ProcessEngine
             }
         }
 
-        ~PEngine()
-        {
-            Memory.ReleaseAll();
-            Detouring.DetachAll();
-
-            if (!CloseHandle(_processHandle))
-            {
-                throw new Kernel32Exception("Impossible to close process handle.", Marshal.GetLastWin32Error());
-            }
-        }
-
         public AssemblyEngine Assembly { get; private set; }
         public DetouringEngine Detouring { get; private set; }
         public MemoryEngine Memory { get; private set; }
@@ -43,6 +32,17 @@ namespace ProcessEngine
         public static async Task<PEngine> BuildAsync(Process process)
         {
             return await new PEngine(process).InitializeAsync();
+        }
+
+        public void Dispose()
+        {
+            Detouring.DetachAll();
+            Memory.ReleaseAll();
+            
+            if (!CloseHandle(_processHandle))
+            {
+                throw new Kernel32Exception("Impossible to close process handle.", Marshal.GetLastWin32Error());
+            }
         }
 
         private async Task<PEngine> InitializeAsync()
