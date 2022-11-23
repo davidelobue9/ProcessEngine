@@ -17,20 +17,26 @@ namespace ProcessEngine.Structs
 
         [FieldOffset(0)] public int IntegerValue;
 
-        public CPURegister(int integerValue) : this()
+
+
+		public CPURegister(byte byte0, byte byte1, byte byte2, byte byte3) : this()
+		{
+			Byte0 = byte0;
+			Byte1 = byte1;
+			Byte2 = byte2;
+			Byte3 = byte3;
+		}
+
+		public CPURegister(int integerValue) : this()
         {
             IntegerValue = integerValue;
         }
 
-        public CPURegister(byte byte0, byte byte1, byte byte2, byte byte3) : this()
-        {
-            Byte0 = byte0;
-            Byte1 = byte1;
-            Byte2 = byte2;
-            Byte3 = byte3;
-        }
+		public CPURegister(IntPtr pointer) : this(pointer.ToInt32())
+		{
+		}
 
-        public byte[] GetBytes()
+		public byte[] GetBytes()
         {
             return new byte[] { Byte0, Byte1, Byte2, Byte3 };
         }
