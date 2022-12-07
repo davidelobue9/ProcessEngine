@@ -136,7 +136,6 @@ namespace ProcessEngine.Utils
             {
                 throw new ArgumentNullException(nameof(srcFieldInfo));
             }
-
             if (dstPropertyInfo is null)
             {
                 throw new ArgumentNullException(nameof(dstPropertyInfo));

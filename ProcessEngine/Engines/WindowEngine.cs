@@ -1,5 +1,7 @@
-﻿using System;
+﻿using PlatformInvoke;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -38,7 +40,23 @@ namespace ProcessEngine.Engines
             return title;
         }
 
-        public void SendKey(byte key, bool isCaseSensitive = false, int delay = 75)
+		public void PostMessage(WindowMessages msg, IntPtr wParam, IntPtr lParam)
+		{
+			bool returnValue = User32.PostMessage(Handle, msg, wParam, lParam);
+			if (!returnValue)
+			{
+				throw new Win32Exception(Marshal.GetLastWin32Error());
+			}
+		}
+
+		public async Task SendKeyAsync(byte key, int delay = 75)
+		{
+			PostMessage(WindowMessages.KeyDown, new IntPtr(key), new IntPtr(0));
+			await Task.Delay(delay);
+			PostMessage(WindowMessages.KeyUp, new IntPtr(key), new IntPtr(0));
+		}
+
+		public void SendAlphabetLetter(byte key, bool isCaseSensitive = false, int delay = 75)
         {
             var canPushCapslk = false;
 
@@ -60,9 +78,9 @@ namespace ProcessEngine.Engines
                 PushCapslock();
             }
 
-            PostMessage(Handle, WindowMessages.KeyDown, new IntPtr(key), new IntPtr(lParam));
+            PostMessage( WindowMessages.KeyDown, new IntPtr(key), new IntPtr(lParam));
             Thread.Sleep(delay);
-            PostMessage(Handle, WindowMessages.KeyUp, new IntPtr(key), new IntPtr(lParam));
+            PostMessage( WindowMessages.KeyUp, new IntPtr(key), new IntPtr(lParam));
 
             Application.DoEvents();
 
@@ -87,12 +105,20 @@ namespace ProcessEngine.Engines
                 } while (capslkInitState == Control.IsKeyLocked(Keys.CapsLock));
             }
         }
+		
+        public Task SendAlphabetLetterAsync(byte key, bool isCaseSensitive = false, int delay = 75)
+		{
+			return Task.Run(() =>
+			{
+				SendAlphabetLetter(key, isCaseSensitive, delay);
+			});
+		}
 
-        public void SendString(string text, bool isCaseSensitive = true)
+		public void SendString(string text, bool isCaseSensitive = true)
         {
             foreach (byte c in text)
             {
-                SendKey(c, isCaseSensitive);
+                SendAlphabetLetter(c, isCaseSensitive);
             }
         }
 
@@ -109,14 +135,6 @@ namespace ProcessEngine.Engines
                 SendMessageA(Handle, WindowMessages.LButtonDBClick, new IntPtr(0), new IntPtr(lParam));
                 SendMessageA(Handle, WindowMessages.LButtonUp, new IntPtr(0), new IntPtr(lParam));
             }
-        }
-
-        public Task SendKeyAsync(byte key, bool isCaseSensitive = false, int delay = 75)
-        {
-            return Task.Run(() =>
-            {
-                SendKey(key, isCaseSensitive, delay);
-            });
         }
 
         public Task SendStringAsync(string text, bool isCaseSensitive = true)
